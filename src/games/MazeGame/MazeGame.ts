@@ -35,15 +35,22 @@ export class MazeGame extends InteractableGameBase {
         this.greenBall = { x: 50, y: 50, radius: 10, color: '#42f56c', vx: 0, vy: 0 };
         this.goal = { x: 350, y: 350, radius: 15, color: 'gold' };
         this.obstacles = [
-            { x: 100, y: 200, width: 250, height: 10, color: '#f54278' },
-            { x: 100, y: 200, width: 10, height: 150, color: '#f54278' }
+            { x: 100, y: 200, width: 230, height: 10, color: '#f54278' },
+            { x: 100, y: 200, width: 10, height: 250, color: '#f54278' },
+            { x: 370, y: 200, width: 230, height: 10, color: '#f54278' },
+            { x: 600, y: 200, width: 10, height: 250, color: '#f54278' },
+            { x: 100, y: 450, width: 510, height: 10, color: '#f54278' },
         ];
 
         this.backgroundColor = "#303030";
     }
 
-    override gameDescription(): string {
-        return "Get the green ball to the gold goal!";
+    override gameDescription(): string[] {
+        return [
+            "Get the green ball to the gold goal!",
+            "You can only set the ball's velocity twice!",
+            "The ball will bounce off the walls and obstacles."
+        ];
     }
 
     override gameTick(): void {
@@ -127,7 +134,6 @@ export class MazeGame extends InteractableGameBase {
     override draw(): void {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawBackground();
-        this.drawGrid();
         this.drawGoal();
         this.drawObstacles();
         this.drawBall(this.greenBall);
@@ -179,7 +185,7 @@ export class MazeGame extends InteractableGameBase {
     }
 
     public setBallVelocity(vx: number, vy: number) {
-        if (this.numVelcoityChanges > 0) {
+        if (this.numVelcoityChanges > 1) {
             console.log('Only one velocity change allowed');
             return false;
         }

@@ -50,7 +50,7 @@ export abstract class InteractableGameBase {
     /**
      * Rendered underneath the game canvas.
      */
-    abstract gameDescription(): string;
+    abstract gameDescription(): string[];
 
     public setCommand(command: string) {
         this.gameCommand = command;

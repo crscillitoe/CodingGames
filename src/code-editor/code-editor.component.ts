@@ -8,6 +8,7 @@ import { tags } from "@lezer/highlight";
 import { CodeService } from '../app/services/code.service';
 import { MethodDocumentation } from '../games/MethodDocumentation';
 import { CommonModule } from '@angular/common';
+import { vim } from "@replit/codemirror-vim"
 
 @Component({
   selector: 'app-code-editor',
@@ -29,7 +30,9 @@ export class CodeEditorComponent implements OnInit {
       this.exposedMethods = game.exposedMethods();
     });
 
-    let theme = EditorView.theme({}, { dark: true });
+    let theme = EditorView.theme({
+      ".cm-selectionBackground": {background: "#254954 !important"}
+    }, { dark: true });
     const highlightStyle = HighlightStyle.define([
       { tag: tags.keyword, color: '#e586fc' },
       { tag: tags.variableName, color: '#6b9bfa' },
@@ -40,6 +43,7 @@ export class CodeEditorComponent implements OnInit {
 
     this.editor = new EditorView({
       extensions: [
+        vim(),
         basicSetup,
         EditorView.lineWrapping,
         theme,
