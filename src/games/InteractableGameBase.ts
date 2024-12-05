@@ -1,3 +1,4 @@
+import { EventEmitter } from "@angular/core";
 import { MethodDocumentation } from "./MethodDocumentation";
 
 export abstract class InteractableGameBase {
@@ -6,6 +7,8 @@ export abstract class InteractableGameBase {
 
     private gameTimeout: any;
     private gameCommand: string = "";
+
+    public gameCompleted: EventEmitter<boolean> = new EventEmitter<boolean>();
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -44,6 +47,11 @@ export abstract class InteractableGameBase {
      */
     abstract draw(): void;
 
+    /**
+     * Rendered underneath the game canvas.
+     */
+    abstract gameDescription(): string;
+
     public setCommand(command: string) {
         this.gameCommand = command;
     }
@@ -66,6 +74,11 @@ export abstract class InteractableGameBase {
         this.gameTimeout = setInterval(() => {
             this.executeCommand(this.gameCommand);
             this.gameTick();
+
+            if (this.hasWon()) {
+                this.stopGame();
+                this.gameCompleted.emit(true);
+            }
         }, 1000 / 60); // 60 FPS
     }
 

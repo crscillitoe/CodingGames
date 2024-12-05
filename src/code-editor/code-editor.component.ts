@@ -1,23 +1,34 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { basicSetup, EditorView } from 'codemirror';
 import { javascript } from "@codemirror/lang-javascript";
 import { HighlightStyle } from "@codemirror/language";
 import { syntaxHighlighting } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
+import { CodeService } from '../app/services/code.service';
+import { MethodDocumentation } from '../games/MethodDocumentation';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-code-editor',
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './code-editor.component.html',
   styleUrls: ['./code-editor.component.scss']
 })
 export class CodeEditorComponent implements OnInit {
-  @Output() command = new EventEmitter<string>();
-  @Output() editing = new EventEmitter<void>();
   private editor!: EditorView;
+  public exposedMethods: MethodDocumentation[] = [];
+  public showMethods: boolean = false;
+
+  constructor(private codeService: CodeService) { }
 
   ngOnInit(): void {
+    this.codeService.getGame().subscribe(game => {
+      if (!game) return;
+
+      this.exposedMethods = game.exposedMethods();
+    });
+
     let theme = EditorView.theme({}, { dark: true });
     const highlightStyle = HighlightStyle.define([
       { tag: tags.keyword, color: '#e586fc' },
@@ -36,7 +47,7 @@ export class CodeEditorComponent implements OnInit {
         javascript(),
         EditorView.updateListener.of(update => {
           if (update.docChanged) {
-            this.editing.emit();
+            this.codeService.resetCode();
           }
         })
       ],
@@ -46,6 +57,10 @@ export class CodeEditorComponent implements OnInit {
 
   run() {
     const userInput = this.editor.state.doc.toString();
-    this.command.emit(userInput);
+    this.codeService.setCode(userInput);
+  }
+
+  toggleMethods() {
+    this.showMethods = !this.showMethods;
   }
 }

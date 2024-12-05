@@ -4,6 +4,8 @@ import { InteractableGameBase } from "../InteractableGameBase";
 export class MazeGame extends InteractableGameBase {
     backgroundColor: string = "#303030";
 
+    private numVelcoityChanges: number = 0;
+
     private greenBall: any;
     private goal: any;
     private obstacles!: any[];
@@ -11,19 +13,37 @@ export class MazeGame extends InteractableGameBase {
     override exposedMethods(): MethodDocumentation[] {
         return [
             {
-                methodName: "setBallVelocity(vx: number, vy: number)",
+                methodName: "setBallVelocity(vx: number, vy: number): bool",
+                methodDescription: ""
+            },
+            {
+                methodName: "getBallVelocity(): { vx: number, vy: number }",
+                methodDescription: ""
+            },
+            {
+                methodName: "getBallCoordinates(): { x: number, y: number }",
+                methodDescription: ""
+            },
+            {
+                methodName: "getGoalCoordinates(): { x: number, y: number }",
                 methodDescription: ""
             }
         ];
     }
 
     override setupGame(): void {
-        this.greenBall = { x: 50, y: 50, radius: 10, color: 'green', vx: 0, vy: 0 };
+        this.greenBall = { x: 50, y: 50, radius: 10, color: '#42f56c', vx: 0, vy: 0 };
         this.goal = { x: 350, y: 350, radius: 15, color: 'gold' };
         this.obstacles = [
-          { x: 200, y: 200, width: 50, height: 10, color: 'black' },
-          { x: 100, y: 300, width: 10, height: 50, color: 'black' }
+            { x: 100, y: 200, width: 250, height: 10, color: '#f54278' },
+            { x: 100, y: 200, width: 10, height: 150, color: '#f54278' }
         ];
+
+        this.backgroundColor = "#303030";
+    }
+
+    override gameDescription(): string {
+        return "Get the green ball to the gold goal!";
     }
 
     override gameTick(): void {
@@ -33,52 +53,75 @@ export class MazeGame extends InteractableGameBase {
     }
 
     override hasWon(): boolean {
-      const dx = this.goal.x - this.greenBall.x;
-      const dy = this.goal.y - this.greenBall.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance < (this.greenBall.radius + this.goal.radius);
+        const dx = this.goal.x - this.greenBall.x;
+        const dy = this.goal.y - this.greenBall.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < (this.greenBall.radius + this.goal.radius);
     }
 
     private checkCollisions() {
-      // Check collision with goal
-      const dx = this.goal.x - this.greenBall.x;
-      const dy = this.goal.y - this.greenBall.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+        // Check collision with goal
+        const dx = this.goal.x - this.greenBall.x;
+        const dy = this.goal.y - this.greenBall.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
-      // Check collision with obstacles
-      this.obstacles.forEach(obstacle => {
-        if (this.greenBall.x + this.greenBall.radius > obstacle.x &&
-            this.greenBall.x - this.greenBall.radius < obstacle.x + obstacle.width &&
-            this.greenBall.y + this.greenBall.radius > obstacle.y &&
-            this.greenBall.y - this.greenBall.radius < obstacle.y + obstacle.height) {
-          this.greenBall.vx = 0;
-          this.greenBall.vy = 0;
-        }
-      });
+        // Check collision with obstacles
+        this.obstacles.forEach(obstacle => {
+            if (this.greenBall.x + this.greenBall.radius > obstacle.x &&
+                this.greenBall.x - this.greenBall.radius < obstacle.x + obstacle.width &&
+                this.greenBall.y + this.greenBall.radius > obstacle.y &&
+                this.greenBall.y - this.greenBall.radius < obstacle.y + obstacle.height) {
+                console.log('collision with obstacle');
+                const overlapX = Math.min(
+                    this.greenBall.x + this.greenBall.radius - obstacle.x,
+                    obstacle.x + obstacle.width - (this.greenBall.x - this.greenBall.radius)
+                );
+                const overlapY = Math.min(
+                    this.greenBall.y + this.greenBall.radius - obstacle.y,
+                    obstacle.y + obstacle.height - (this.greenBall.y - this.greenBall.radius)
+                );
+
+                if (overlapX < overlapY) {
+                    if (this.greenBall.vx > 0) {
+                        this.greenBall.x = obstacle.x - this.greenBall.radius;
+                    } else if (this.greenBall.vx < 0) {
+                        this.greenBall.x = obstacle.x + obstacle.width + this.greenBall.radius;
+                    }
+                    this.greenBall.vx = -this.greenBall.vx;
+                } else {
+                    if (this.greenBall.vy > 0) {
+                        this.greenBall.y = obstacle.y - this.greenBall.radius;
+                    } else if (this.greenBall.vy < 0) {
+                        this.greenBall.y = obstacle.y + obstacle.height + this.greenBall.radius;
+                    }
+                    this.greenBall.vy = -this.greenBall.vy;
+                }
+            }
+        });
     }
 
     private updatePosition() {
-      this.greenBall.x += this.greenBall.vx;
-      this.greenBall.y += this.greenBall.vy;
-      this.checkCanvasEdges(this.greenBall);
+        this.greenBall.x += this.greenBall.vx;
+        this.greenBall.y += this.greenBall.vy;
+        this.checkCanvasEdges(this.greenBall);
     }
 
     private checkCanvasEdges(ball: { x: number; y: number; radius: number; vx: number; vy: number }) {
-      if (ball.x + ball.radius > this.canvas.width) {
-        ball.x = this.canvas.width - ball.radius;
-        ball.vx = -Math.abs(ball.vx); // Ensure it moves left
-      } else if (ball.x - ball.radius < 0) {
-        ball.x = ball.radius;
-        ball.vx = Math.abs(ball.vx); // Ensure it moves right
-      }
+        if (ball.x + ball.radius > this.canvas.width) {
+            ball.x = this.canvas.width - ball.radius;
+            ball.vx = -Math.abs(ball.vx); // Ensure it moves left
+        } else if (ball.x - ball.radius < 0) {
+            ball.x = ball.radius;
+            ball.vx = Math.abs(ball.vx); // Ensure it moves right
+        }
 
-      if (ball.y + ball.radius > this.canvas.height) {
-        ball.y = this.canvas.height - ball.radius;
-        ball.vy = -Math.abs(ball.vy); // Ensure it moves up
-      } else if (ball.y - ball.radius < 0) {
-        ball.y = ball.radius;
-        ball.vy = Math.abs(ball.vy); // Ensure it moves down
-      }
+        if (ball.y + ball.radius > this.canvas.height) {
+            ball.y = this.canvas.height - ball.radius;
+            ball.vy = -Math.abs(ball.vy); // Ensure it moves up
+        } else if (ball.y - ball.radius < 0) {
+            ball.y = ball.radius;
+            ball.vy = Math.abs(ball.vy); // Ensure it moves down
+        }
     }
 
     override draw(): void {
@@ -136,15 +179,26 @@ export class MazeGame extends InteractableGameBase {
     }
 
     public setBallVelocity(vx: number, vy: number) {
+        if (this.numVelcoityChanges > 0) {
+            console.log('Only one velocity change allowed');
+            return false;
+        }
+
         this.greenBall.vx = vx;
         this.greenBall.vy = vy;
+        this.numVelcoityChanges++;
+        return true;
+    }
+
+    public getBallVelocity() {
+        return { vx: this.greenBall.vx, vy: this.greenBall.vy };
     }
 
     public getBallCoordinates() {
-      return { x: this.greenBall.x, y: this.greenBall.y };
+        return { x: this.greenBall.x, y: this.greenBall.y };
     }
 
     public getGoalCoordinates() {
-      return { x: this.goal.x, y: this.goal.y };
+        return { x: this.goal.x, y: this.goal.y };
     }
 }
