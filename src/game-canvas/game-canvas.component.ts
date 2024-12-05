@@ -29,6 +29,10 @@ export class GameCanvasComponent implements OnInit {
       }
     });
 
+    this.game.resetGame();
+    this.game.setCommand('');
+    this.game.runGame();
+
     this.codeService.getCode().subscribe((code: string) => {
       this.game.setCommand(code);
       this.game.runGame();

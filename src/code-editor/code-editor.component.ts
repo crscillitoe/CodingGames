@@ -51,7 +51,7 @@ export class CodeEditorComponent implements OnInit {
         javascript(),
         EditorView.updateListener.of(update => {
           if (update.docChanged) {
-            this.codeService.resetCode();
+            // this.codeService.resetCode();
           }
         })
       ],
@@ -61,6 +61,7 @@ export class CodeEditorComponent implements OnInit {
 
   run() {
     const userInput = this.editor.state.doc.toString();
+    this.codeService.resetCode();
     this.codeService.setCode(userInput);
   }
 
