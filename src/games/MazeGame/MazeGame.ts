@@ -49,7 +49,8 @@ export class MazeGame extends InteractableGameBase {
         return [
             "Get the green ball to the gold goal!",
             "You can only set the ball's velocity twice!",
-            "The ball will bounce off the walls and obstacles."
+            "The ball will bounce off the walls and obstacles.",
+            "The code you write will run every frame!"
         ];
     }
 
