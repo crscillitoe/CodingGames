@@ -13,6 +13,16 @@
     font-family: monospace;
 }
 
+#method-displays {
+    margin: 0;
+    resize: none;
+    padding: 10px;
+    color: white;
+    font-family: monospace;
+    font-size: 16px;
+}
+
+
 #user-input, #highlight-text {
     font-size: 16px;
     line-height: normal;

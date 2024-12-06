@@ -18,6 +18,7 @@ import { vim } from "@replit/codemirror-vim"
 })
 export class CodeEditorComponent implements OnInit {
   private editor!: EditorView;
+  private methodNames!: EditorView;
   public exposedMethods: MethodDocumentation[] = [];
   public showMethods: boolean = false;
 
@@ -28,10 +29,15 @@ export class CodeEditorComponent implements OnInit {
       if (!game) return;
 
       this.exposedMethods = game.exposedMethods();
+      const newDoc = this.exposedMethods.map(method => method.methodName).join('\n');
+      const newState = this.methodNames.state.update({
+        changes: { from: 0, to: this.methodNames.state.doc.length, insert: newDoc }
+      });
+      this.methodNames.dispatch(newState);
     });
 
     let theme = EditorView.theme({
-      ".cm-selectionBackground": {background: "#254954 !important"}
+      ".cm-selectionBackground": { background: "#254954 !important" }
     }, { dark: true });
     const highlightStyle = HighlightStyle.define([
       { tag: tags.keyword, color: '#e586fc' },
@@ -56,6 +62,18 @@ export class CodeEditorComponent implements OnInit {
         })
       ],
       parent: document.querySelector('#user-input') as Element
+    });
+
+    this.methodNames = new EditorView({
+      extensions: [
+        EditorView.editable.of(false),
+        basicSetup,
+        theme,
+        syntaxHighlighting(highlightStyle),
+        javascript()
+      ],
+      doc: "",
+      parent: document.querySelector('#method-displays') as Element,
     });
   }
 

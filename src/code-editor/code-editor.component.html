@@ -1,11 +1,5 @@
 <div style="display: flex; flex-direction: column; height: 100%;">
-    <div style="margin-top: 10px; color: white; font-family: monospace;">
-        <ul>
-            <li *ngFor="let method of exposedMethods">
-                {{ method.methodName }}
-            </li>
-        </ul>
-    </div>
+    <div id="method-displays"></div>
     <div id="user-input" style="flex-grow: 1;"></div>
     <button id="run" (click)="run()" style="align-self: flex-end;">Run</button>
 </div>

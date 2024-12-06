@@ -197,6 +197,13 @@ export class ThreeBodyProblem extends InteractableGameBase {
             });
         }
 
+        if (Math.abs(vx) > 6 || Math.abs(vy) > 6) {
+            this.gameState.emit({
+                state: State.Lost,
+                message: "Velocity must be less than or equal to 6"
+            });
+        }
+
         this.playerBalls[ballIndex].vx = vx;
         this.playerBalls[ballIndex].vy = vy;
     }
