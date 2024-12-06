@@ -15,22 +15,10 @@ export class ThreeBodyProblem extends InteractableGameBase {
         this.draw();
     }
     override updateState(): void {
-        // Check distances between all the balls, if any distance is under 100 you lose
-        for (let i = 0; i < this.playerBalls.length; i++) {
-            for (let j = i + 1; j < this.playerBalls.length; j++) {
-                const dx = this.playerBalls[i].x - this.playerBalls[j].x;
-                const dy = this.playerBalls[i].y - this.playerBalls[j].y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
-                if (distance < 100) {
-                    this.gameState.emit({
-                        state: State.Lost,
-                        message: "Balls are too close together"
-                    });
-                }
-            }
-        }
+        this.checkBallDistances();
+        this.checkBallGoalCollisions();
     }
+
     override exposedMethods(): MethodDocumentation[] {
         return [
             {
@@ -57,11 +45,12 @@ export class ThreeBodyProblem extends InteractableGameBase {
         ];
 
         this.goals = [
-            new Rectangle(200 - goalSize / 2, goalY - goalSize / 2, 0, 0, goalSize, goalSize, 'gold'),
             new Rectangle(400 - goalSize / 2, goalY - goalSize / 2, 0, 0, goalSize, goalSize, '#42f56c'),
+            new Rectangle(200 - goalSize / 2, goalY - goalSize / 2, 0, 0, goalSize, goalSize, 'gold'),
             new Rectangle(600 - goalSize / 2, goalY - goalSize / 2, 0, 0, goalSize, goalSize, 'red')
         ];
     }
+
     override draw(): void {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.drawBackground();
@@ -114,6 +103,35 @@ export class ThreeBodyProblem extends InteractableGameBase {
         for (let goal of this.goals) {
             goal.drawRectangle(this.context);
         }
+    }
+
+    private checkBallDistances() {
+        for (let i = 0; i < this.playerBalls.length; i++) {
+            for (let j = i + 1; j < this.playerBalls.length; j++) {
+                const dx = this.playerBalls[i].x - this.playerBalls[j].x;
+                const dy = this.playerBalls[i].y - this.playerBalls[j].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 100) {
+                    this.gameState.emit({
+                        state: State.Lost,
+                        message: "Balls are too close together"
+                    });
+                }
+            }
+        }
+    }
+
+    private checkBallGoalCollisions() {
+        for (let i = 0; i < this.playerBalls.length; i++) {
+            if (!this.playerBalls[i].isCollidingWithRectangle(this.goals[i])) {
+                return;
+            }
+        }
+        this.gameState.emit({
+            state: State.Won,
+            message: "All balls reached their goals"
+        });
     }
 
     public getBalls(): Ball[] {
