@@ -1,14 +1,17 @@
-import { MethodDocumentation } from "../MethodDocumentation";
+import { MethodDocumentation } from "../types/MethodDocumentation";
 import { InteractableGameBase } from "../InteractableGameBase";
+import { State } from "../types/GameState";
+import { Ball } from "../objects/Ball";
+import { Rectangle } from "../objects/Rectangle";
 
 export class MazeGame extends InteractableGameBase {
     backgroundColor: string = "#303030";
 
     private numVelcoityChanges: number = 0;
 
-    private greenBall: any;
-    private goal: any;
-    private obstacles!: any[];
+    private greenBall!: Ball;
+    private goal!: Ball;
+    private obstacles!: Rectangle[];
 
     override exposedMethods(): MethodDocumentation[] {
         return [
@@ -32,14 +35,15 @@ export class MazeGame extends InteractableGameBase {
     }
 
     override setupGame(): void {
-        this.greenBall = { x: 50, y: 50, radius: 10, color: '#42f56c', vx: 1, vy: 0 };
-        this.goal = { x: 350, y: 350, radius: 15, color: 'gold' };
+        this.greenBall = new Ball(50, 50, 1, 0, 10, '#42f56c');
+        this.goal = new Ball(350, 350, 0, 0, 15, 'gold');
+
         this.obstacles = [
-            { x: 100, y: 200, width: 230, height: 10, color: '#f54278' },
-            { x: 100, y: 200, width: 10, height: 250, color: '#f54278' },
-            { x: 370, y: 200, width: 230, height: 10, color: '#f54278' },
-            { x: 600, y: 200, width: 10, height: 250, color: '#f54278' },
-            { x: 100, y: 450, width: 510, height: 10, color: '#f54278' },
+            new Rectangle(100, 200, 0, 0, 230, 10, '#f54278'),
+            new Rectangle(100, 200, 0, 0, 10, 250, '#f54278'),
+            new Rectangle(370, 200, 0, 0, 230, 10, '#f54278'),
+            new Rectangle(600, 200, 0, 0, 10, 250, '#f54278'),
+            new Rectangle(100, 450, 0, 0, 510, 10, '#f54278'),
         ];
 
         this.numVelcoityChanges = 0;
@@ -49,8 +53,6 @@ export class MazeGame extends InteractableGameBase {
     override gameDescription(): string[] {
         return [
             "Get the green ball to the gold goal!",
-            "You can only set the ball's velocity once!",
-            "The ball will bounce off the walls and obstacles.",
             "The code you write will run every frame!"
         ];
     }
@@ -61,57 +63,59 @@ export class MazeGame extends InteractableGameBase {
         this.draw();
     }
 
-    override hasWon(): boolean {
-        const dx = this.goal.x - this.greenBall.x;
-        const dy = this.goal.y - this.greenBall.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        return distance < (this.greenBall.radius + this.goal.radius);
+    override updateState(): void {
+        if (this.greenBall.isCollidingWith(this.goal)) {
+            this.gameState.emit({
+                state: State.Won,
+            });
+        }
+
+        this.gameState.emit({
+            state: State.Running
+        });
     }
 
     private checkCollisions() {
         // Check collision with goal
-        const dx = this.goal.x - this.greenBall.x;
-        const dy = this.goal.y - this.greenBall.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (this.greenBall.isCollidingWith(this.goal)) {
+            console.log('collision with goal');
+            this.greenBall.vx = 0;
+            this.greenBall.vy = 0;
+        }
 
         // Check collision with obstacles
         this.obstacles.forEach(obstacle => {
-            if (this.greenBall.x + this.greenBall.radius > obstacle.x &&
-                this.greenBall.x - this.greenBall.radius < obstacle.x + obstacle.width &&
-                this.greenBall.y + this.greenBall.radius > obstacle.y &&
-                this.greenBall.y - this.greenBall.radius < obstacle.y + obstacle.height) {
-                console.log('collision with obstacle');
-                const overlapX = Math.min(
-                    this.greenBall.x + this.greenBall.radius - obstacle.x,
-                    obstacle.x + obstacle.width - (this.greenBall.x - this.greenBall.radius)
-                );
-                const overlapY = Math.min(
-                    this.greenBall.y + this.greenBall.radius - obstacle.y,
-                    obstacle.y + obstacle.height - (this.greenBall.y - this.greenBall.radius)
-                );
+            if (this.greenBall.isCollidingWithRectangle(obstacle)) {
+            const overlapX = Math.min(
+                this.greenBall.x + this.greenBall.radius - obstacle.x,
+                obstacle.x + obstacle.width - (this.greenBall.x - this.greenBall.radius)
+            );
+            const overlapY = Math.min(
+                this.greenBall.y + this.greenBall.radius - obstacle.y,
+                obstacle.y + obstacle.height - (this.greenBall.y - this.greenBall.radius)
+            );
 
-                if (overlapX < overlapY) {
-                    if (this.greenBall.vx > 0) {
-                        this.greenBall.x = obstacle.x - this.greenBall.radius;
-                    } else if (this.greenBall.vx < 0) {
-                        this.greenBall.x = obstacle.x + obstacle.width + this.greenBall.radius;
-                    }
-                    this.greenBall.vx = -this.greenBall.vx;
-                } else {
-                    if (this.greenBall.vy > 0) {
-                        this.greenBall.y = obstacle.y - this.greenBall.radius;
-                    } else if (this.greenBall.vy < 0) {
-                        this.greenBall.y = obstacle.y + obstacle.height + this.greenBall.radius;
-                    }
-                    this.greenBall.vy = -this.greenBall.vy;
+            if (overlapX < overlapY) {
+                if (this.greenBall.vx > 0) {
+                this.greenBall.x = obstacle.x - this.greenBall.radius;
+                } else if (this.greenBall.vx < 0) {
+                this.greenBall.x = obstacle.x + obstacle.width + this.greenBall.radius;
                 }
+                this.greenBall.vx = -this.greenBall.vx;
+            } else {
+                if (this.greenBall.vy > 0) {
+                this.greenBall.y = obstacle.y - this.greenBall.radius;
+                } else if (this.greenBall.vy < 0) {
+                this.greenBall.y = obstacle.y + obstacle.height + this.greenBall.radius;
+                }
+                this.greenBall.vy = -this.greenBall.vy;
+            }
             }
         });
     }
 
     private updatePosition() {
-        this.greenBall.x += this.greenBall.vx;
-        this.greenBall.y += this.greenBall.vy;
+        this.greenBall.animate();
         this.checkCanvasEdges(this.greenBall);
     }
 
@@ -188,14 +192,26 @@ export class MazeGame extends InteractableGameBase {
 
     public setBallVelocity(vx: number, vy: number) {
         if (this.numVelcoityChanges > 0) {
-            console.log('Only one velocity change allowed');
-            return false;
+            this.gameState.emit({
+                state: State.Lost,
+                message: 'Only one velocity change allowed'
+            });
+
+            return;
+        }
+
+        if (vx > 2 || vy > 2) {
+            this.gameState.emit({
+                state: State.Lost,
+                message: 'Velocity must be less than 2'
+            });
+
+            return;
         }
 
         this.greenBall.vx = vx;
         this.greenBall.vy = vy;
         this.numVelcoityChanges++;
-        return true;
     }
 
     public getBallVelocity() {

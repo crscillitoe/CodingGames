@@ -1,5 +1,6 @@
 import { EventEmitter } from "@angular/core";
-import { MethodDocumentation } from "./MethodDocumentation";
+import { MethodDocumentation } from "./types/MethodDocumentation";
+import { GameState, State } from "./types/GameState";
 
 export abstract class InteractableGameBase {
     public canvas: HTMLCanvasElement;
@@ -8,7 +9,7 @@ export abstract class InteractableGameBase {
     private gameTimeout: any;
     private gameCommand: string = "";
 
-    public gameCompleted: EventEmitter<boolean> = new EventEmitter<boolean>();
+    public gameState: EventEmitter<GameState> = new EventEmitter<GameState>();
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -26,11 +27,9 @@ export abstract class InteractableGameBase {
     abstract gameTick(): void;
 
     /**
-     * True - The player has completed the game successfully.
-     * 
-     * False - Otherwise.
+     * Update the game state.
      */
-    abstract hasWon(): boolean;
+    abstract updateState(): void;
 
     /**
      * Returns a list of method signatures that can be utilized by the player.
@@ -74,11 +73,7 @@ export abstract class InteractableGameBase {
         this.gameTimeout = setInterval(() => {
             this.executeCommand(this.gameCommand);
             this.gameTick();
-
-            if (this.hasWon()) {
-                this.stopGame();
-                this.gameCompleted.emit(true);
-            }
+            this.updateState();
         }, 1000 / 60); // 60 FPS
     }
 
@@ -90,8 +85,10 @@ export abstract class InteractableGameBase {
     }
 
     public resetGame() {
+        this.clearCommand();
         this.stopGame();
         this.setupGame();
         this.draw();
+        this.runGame();
     }
 }

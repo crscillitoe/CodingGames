@@ -3,6 +3,8 @@ import { InteractableGameBase } from '../games/InteractableGameBase';
 import { MazeGame } from '../games/MazeGame/MazeGame';
 import { CodeService } from '../app/services/code.service';
 import { CommonModule } from '@angular/common';
+import { GameState, State } from '../games/types/GameState';
+import { ThreeBodyProblem } from '../games/ThreeBodyProblem/ThreeBodyProblem';
 
 @Component({
   selector: 'app-game-canvas',
@@ -19,18 +21,22 @@ export class GameCanvasComponent implements OnInit {
   ngOnInit() {
     this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 
-    this.game = new MazeGame(this.canvas);
+    this.game = new ThreeBodyProblem(this.canvas);
 
     this.codeService.setGame(this.game);
 
-    this.game.gameCompleted.subscribe((hasWon: boolean) => {
-      if (hasWon) {
+    this.game.gameState.subscribe((gameState: GameState) => {
+      if (gameState.state === State.Won) {
         alert('You won!');
+        this.game.resetGame();
+      } else if (gameState.state === State.Lost) {
+        alert(gameState.message);
+        this.game.resetGame();
       }
     });
 
     this.game.resetGame();
-    this.game.setCommand('');
+    this.game.clearCommand();
     this.game.runGame();
 
     this.codeService.getCode().subscribe((code: string) => {

@@ -6,7 +6,7 @@ import { HighlightStyle } from "@codemirror/language";
 import { syntaxHighlighting } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 import { CodeService } from '../app/services/code.service';
-import { MethodDocumentation } from '../games/MethodDocumentation';
+import { MethodDocumentation } from '../games/types/MethodDocumentation';
 import { CommonModule } from '@angular/common';
 import { vim } from "@replit/codemirror-vim"
 
