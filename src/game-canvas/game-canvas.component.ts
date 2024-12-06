@@ -15,6 +15,7 @@ import { CatchMeIfYouCan } from '../games/CatchMeIfYouCan/CatchMeIfYouCan';
 })
 export class GameCanvasComponent implements OnInit {
   private canvas!: HTMLCanvasElement;
+  public logs: any[] = [];
   public game!: InteractableGameBase;
 
   constructor(private codeService: CodeService) { }
@@ -22,9 +23,19 @@ export class GameCanvasComponent implements OnInit {
   ngOnInit() {
     this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 
-    this.game = new CatchMeIfYouCan(this.canvas);
+    this.game = new MazeGame(this.canvas, this.codeService);
+
 
     this.codeService.setGame(this.game);
+
+    this.codeService.getLogs().subscribe(log => {
+      if (log === "CLEAR_LOG") {
+        this.logs = [];
+        return;
+      }
+
+      this.logs.push( log);
+    });
 
     this.game.gameState.subscribe((gameState: GameState) => {
       if (gameState.state === State.Won) {

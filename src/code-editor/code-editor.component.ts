@@ -28,7 +28,14 @@ export class CodeEditorComponent implements OnInit {
     this.codeService.getGame().subscribe(game => {
       if (!game) return;
 
-      this.exposedMethods = game.exposedMethods();
+      this.exposedMethods.push(...[
+        {
+          methodName: "log(data: any, color?: string): void",
+          methodDescription: ""
+        }
+      ]);
+
+      this.exposedMethods.push(... game.exposedMethods());
       const newDoc = this.exposedMethods.map(method => method.methodName).join('\n');
       const newState = this.methodNames.state.update({
         changes: { from: 0, to: this.methodNames.state.doc.length, insert: newDoc }
@@ -81,6 +88,10 @@ export class CodeEditorComponent implements OnInit {
     const userInput = this.editor.state.doc.toString();
     this.codeService.resetCode();
     this.codeService.setCode(userInput);
+  }
+
+  pause() {
+    this.codeService.togglePause();
   }
 
   toggleMethods() {

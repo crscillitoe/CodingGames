@@ -1,5 +1,8 @@
 <div style="display: flex; flex-direction: column; height: 100%;">
     <div id="method-displays"></div>
     <div id="user-input" style="flex-grow: 1;"></div>
-    <button id="run" (click)="run()" style="align-self: flex-end;">Run</button>
+    <div style="display: flex; flex-direction: row; justify-content: flex-end;">
+        <button class="button" id="play-pause" (click)="pause()" style="align-self: flex-end;">Play / Pause</button>
+        <button class="button" id="run" (click)="run()" style="align-self: flex-end;">Run</button>
+    </div>
 </div>

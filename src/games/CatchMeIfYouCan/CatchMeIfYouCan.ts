@@ -53,12 +53,12 @@ export class CatchMeIfYouCan extends InteractableGameBase {
         const edge = Math.floor(Math.random() * 4);
         let x, y, vx, vy;
 
-        x = Math.random() * this.canvas.width;
-        vy = Math.random() * 5 + 5;
+        x = Math.round(Math.random() * this.canvas.width);
+        vy = Math.round(Math.random() * 5 + 5);
         y = this.canvas.height / 2;
 
         while (Math.abs(x! - this.canvas.width / 2) < 150) {
-            x = Math.random() * this.canvas.width;
+            x = Math.round(Math.random() * this.canvas.width);
         }
 
         vx = 0;

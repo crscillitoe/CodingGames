@@ -7,6 +7,8 @@ import { InteractableGameBase } from '../../games/InteractableGameBase';
 export class CodeService {
   private code: EventEmitter<string> = new EventEmitter<string>();
   private reset: EventEmitter<void> = new EventEmitter<void>();
+  private log: EventEmitter<any> = new EventEmitter<any>();
+  private pause: EventEmitter<boolean> = new EventEmitter<boolean>();
   private game: EventEmitter<InteractableGameBase> = new EventEmitter<InteractableGameBase>();
 
   constructor() { }
@@ -25,6 +27,22 @@ export class CodeService {
 
   public getCode(): EventEmitter<string> {
     return this.code;
+  }
+
+  public sendLog(log: any) {
+    this.log.emit(log);
+  }
+
+  public getLogs() {
+    return this.log;
+  }
+
+  public togglePause() {
+    this.pause.emit(true);
+  }
+
+  public getPause() {
+    return this.pause;
   }
 
   public resetCode() {

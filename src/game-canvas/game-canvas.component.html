@@ -1,6 +1,11 @@
-<canvas id="gameCanvas" width="800" height="600" style="border:1px solid #000000;"></canvas>
 <div *ngIf="game" class="game-description">
     <ng-container *ngFor="let description of game.gameDescription()">
         <p>{{description}}</p>
     </ng-container>
+</div>
+<canvas id="gameCanvas" width="800" height="600" style="border:1px solid #000000;"></canvas>
+<div id="logs">
+    <div *ngFor="let log of logs" [style.color]="log.color">
+        {{log.log}}
+    </div>
 </div>

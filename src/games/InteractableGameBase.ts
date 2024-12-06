@@ -1,19 +1,30 @@
 import { EventEmitter } from "@angular/core";
 import { MethodDocumentation } from "./types/MethodDocumentation";
 import { GameState, State } from "./types/GameState";
+import { CodeService } from "../app/services/code.service";
 
 export abstract class InteractableGameBase {
     public canvas: HTMLCanvasElement;
     public context: CanvasRenderingContext2D;
 
+    private paused: boolean = false;
+
     private gameTimeout: any;
     private gameCommand: string = "";
 
+    private codeService!: CodeService;
+
     public gameState: EventEmitter<GameState> = new EventEmitter<GameState>();
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, codeService: CodeService) {
         this.canvas = canvas;
         this.context = this.canvas.getContext('2d')!;
+
+        this.codeService = codeService;
+
+        this.codeService.getPause().subscribe(pause => {
+            this.paused = !this.paused;
+        });
 
         this.setupGame();
         this.draw();
@@ -21,7 +32,7 @@ export abstract class InteractableGameBase {
 
     /**
      * Called every frame while the game is executing.
-     * 
+     *
      * Must be implemented on a game by game basis.
      */
     abstract gameTick(): void;
@@ -40,7 +51,7 @@ export abstract class InteractableGameBase {
      * Set the game to its initial state.
      */
     abstract setupGame(): void;
-    
+
     /**
      * Draws the game scene.
      */
@@ -59,6 +70,17 @@ export abstract class InteractableGameBase {
         this.gameCommand = "";
     }
 
+    public log(message: any, color: string = 'white') {
+        this.codeService.sendLog({
+            log: JSON.stringify(message),
+            color: color
+        });
+    }
+
+    private clearLog() {
+        this.codeService.sendLog("CLEAR_LOG");
+    }
+
     private executeCommand(command: string): void {
         try {
             const func = new Function('context', `with (context) { ${command} }`);
@@ -71,9 +93,12 @@ export abstract class InteractableGameBase {
     public runGame() {
         this.stopGame();
         this.gameTimeout = setInterval(() => {
-            this.executeCommand(this.gameCommand);
-            this.gameTick();
-            this.updateState();
+            if (!this.paused) {
+                this.clearLog();
+                this.executeCommand(this.gameCommand);
+                this.gameTick();
+                this.updateState();
+            }
         }, 1000 / 60); // 60 FPS
     }
 
