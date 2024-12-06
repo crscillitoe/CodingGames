@@ -5,6 +5,7 @@ import { CodeService } from '../app/services/code.service';
 import { CommonModule } from '@angular/common';
 import { GameState, State } from '../games/types/GameState';
 import { ThreeBodyProblem } from '../games/ThreeBodyProblem/ThreeBodyProblem';
+import { CatchMeIfYouCan } from '../games/CatchMeIfYouCan/CatchMeIfYouCan';
 
 @Component({
   selector: 'app-game-canvas',
@@ -21,7 +22,7 @@ export class GameCanvasComponent implements OnInit {
   ngOnInit() {
     this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 
-    this.game = new ThreeBodyProblem(this.canvas);
+    this.game = new CatchMeIfYouCan(this.canvas);
 
     this.codeService.setGame(this.game);
 
