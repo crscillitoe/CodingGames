@@ -23,7 +23,7 @@ export class GameCanvasComponent implements OnInit {
   ngOnInit() {
     this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 
-    this.game = new MazeGame(this.canvas, this.codeService);
+    this.game = new ThreeBodyProblem(this.canvas, this.codeService);
 
 
     this.codeService.setGame(this.game);
