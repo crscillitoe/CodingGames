@@ -14,15 +14,21 @@ export class ThreeBodyProblem extends InteractableGameBase {
         this.animateBalls();
         this.draw();
     }
+
     override updateState(): void {
         this.checkBallDistances();
         this.checkBallGoalCollisions();
+        this.checkBallVelocities();
     }
 
     override exposedMethods(): MethodDocumentation[] {
         return [
             {
                 methodName: "getBalls(): Ball[]",
+                methodDescription: ""
+            },
+            {
+                methodName: "getGoals(): Rectangle[]",
                 methodDescription: ""
             },
             {
@@ -33,22 +39,39 @@ export class ThreeBodyProblem extends InteractableGameBase {
     }
 
     override setupGame(): void {
+        this.randomizeBalls();
+
+        for (let x = 0; x < 3; x++) {
+            const ball = this.playerBalls[x];
+            const goal = this.getRectangle(ball.color)!;
+
+            if (Math.abs(ball.x - goal.x) <= 50)
+            {
+                this.setupGame();
+                return;
+            }
+        }
+    }
+
+    private randomizeBalls() {
         const ballY = 550;
         const goalY = 50;
         const ballRadius = 10;
         const goalSize = 50;
 
-        this.playerBalls = [
-            new Ball(200, ballY + ballRadius, 0, 0, ballRadius, '#42f56c'),
-            new Ball(400, ballY + ballRadius, 0, 0, ballRadius, 'gold'),
-            new Ball(600, ballY + ballRadius, 0, 0, ballRadius, 'red')
-        ];
+        let ballColors = ['#42f56c', 'gold', 'red'];
+        let goalColors = ['#42f56c', 'gold', 'red'];
 
-        this.goals = [
-            new Rectangle(400 - goalSize / 2, goalY - goalSize / 2, 0, 0, goalSize, goalSize, '#42f56c'),
-            new Rectangle(200 - goalSize / 2, goalY - goalSize / 2, 0, 0, goalSize, goalSize, 'gold'),
-            new Rectangle(600 - goalSize / 2, goalY - goalSize / 2, 0, 0, goalSize, goalSize, 'red')
-        ];
+        ballColors = ballColors.sort(() => Math.random() - 0.5);
+        goalColors = goalColors.sort(() => Math.random() - 0.5);
+
+        this.playerBalls = ballColors.map((color, index) => new Ball(
+            200 + index * 200, ballY + ballRadius, 0, 0, ballRadius, color
+        ));
+
+        this.goals = goalColors.map((color, index) => new Rectangle(
+            200 + index * 200 - goalSize / 2, goalY - goalSize / 2, 0, 0, goalSize, goalSize, color
+        ));
     }
 
     override draw(): void {
@@ -61,6 +84,19 @@ export class ThreeBodyProblem extends InteractableGameBase {
         return [
             "Get the balls to their respective goals!",
         ]
+    }
+
+    private checkBallVelocities() {
+        const allHaveVelocity = this.playerBalls.every(ball => ball.vx !== 0 || ball.vy !== 0);
+        const anyHaveVelocity = this.playerBalls.some(ball => ball.vx !== 0 || ball.vy !== 0);
+
+        if (anyHaveVelocity && !allHaveVelocity) {
+            this.gameState.emit({
+                state: State.Lost,
+                message: "All balls must have velocities if any ball has a velocity"
+            });
+        }
+
     }
 
     private drawBackground() {
@@ -122,12 +158,23 @@ export class ThreeBodyProblem extends InteractableGameBase {
         }
     }
 
+    private getRectangle(color: string) {
+        for (let goal of this.goals) {
+            if (goal.color === color) {
+                return goal;
+            }
+        }
+        
+        return null;
+    }
+
     private checkBallGoalCollisions() {
         for (let i = 0; i < this.playerBalls.length; i++) {
-            if (!this.playerBalls[i].isCollidingWithRectangle(this.goals[i])) {
+            if (!this.playerBalls[i].isCollidingWithRectangle(this.getRectangle(this.playerBalls[i].color)!)) {
                 return;
             }
         }
+
         this.gameState.emit({
             state: State.Won,
             message: "All balls reached their goals"
@@ -136,6 +183,10 @@ export class ThreeBodyProblem extends InteractableGameBase {
 
     public getBalls(): Ball[] {
         return this.playerBalls;
+    }
+
+    public getGoals(): Rectangle[] {
+        return this.goals;
     }
 
     public setBallVelocity(ballIndex: number, vx: number, vy: number): void {
